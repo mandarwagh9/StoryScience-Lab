@@ -7,6 +7,7 @@ import {
   SimpleHarmonicMotion,
   BarChart,
   SolarSystem,
+  ProcessFlow,
   visualizationConfig,
   VisualizationType
 } from './visualizations'
@@ -26,6 +27,7 @@ const visualizationComponents: Record<VisualizationType, React.FC<any>> = {
   'solar-system': SolarSystem,
   'atom': ProjectileMotion,
   'circuits': WaveMotion,
+  'process': ProcessFlow,
 }
 
 export default function RemotionViz({ vizType, params = {}, title, autoPlay = true }: RemotionVizProps) {

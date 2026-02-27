@@ -3,6 +3,7 @@ export { WaveMotion } from './WaveMotion'
 export { SimpleHarmonicMotion } from './SimpleHarmonicMotion'
 export { BarChart } from './BarChart'
 export { SolarSystem } from './SolarSystem'
+export { ProcessFlow } from './ProcessFlow'
 
 export type VisualizationType = 
   | 'projectile-motion'
@@ -12,6 +13,7 @@ export type VisualizationType =
   | 'solar-system'
   | 'atom'
   | 'circuits'
+  | 'process'
 
 export const visualizationConfig: Record<VisualizationType, {
   durationInFrames: number
@@ -26,4 +28,5 @@ export const visualizationConfig: Record<VisualizationType, {
   'solar-system': { durationInFrames: 600, fps: 30, width: 800, height: 500 },
   'atom': { durationInFrames: 300, fps: 30, width: 800, height: 500 },
   'circuits': { durationInFrames: 300, fps: 30, width: 800, height: 500 },
+  'process': { durationInFrames: 180, fps: 30, width: 800, height: 500 },
 }

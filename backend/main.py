@@ -236,11 +236,11 @@ def generate_viz_config(question: str, text_content: str) -> dict:
             }
         }
     
-    # Process/How things work
-    if any(w in q for w in ["how does", "how do", "process", "step", "procedure", "method", "work", "engine", "machine"]):
+    # Process/How things work - biology, life processes, how stuff works
+    if any(w in q for w in ["how does", "how do", "process", "step", "procedure", "method", "work", "engine", "machine", "photosynthesis", "respiration", "digestion", "cycle"]):
         # Extract key terms from question for labels
         words = re.findall(r'\b\w+\b', question.lower())
-        stop_words = {'how', 'does', 'what', 'is', 'a', 'an', 'the', 'do', 'you', 'work', 'it'}
+        stop_words = {'how', 'does', 'what', 'is', 'a', 'an', 'the', 'do', 'you', 'it'}
         key_words = [w for w in words if w not in stop_words and len(w) > 2]
         
         if len(key_words) >= 3:

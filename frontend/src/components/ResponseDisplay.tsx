@@ -22,13 +22,13 @@ interface ResponseDisplayProps {
 const vizTypeMapping: Record<string, string> = {
   'particle': 'projectile-motion',
   'wave': 'wave-motion',
-  'circuit': 'wave-motion',
-  'molecule': 'projectile-motion',
+  'circuit': 'process',
+  'molecule': 'atom',
   'graph': 'wave-motion',
   'astronomy': 'solar-system',
   'bar': 'bar-chart',
-  'process': 'bar-chart',
-  'atom': 'projectile-motion',
+  'process': 'process',
+  'atom': 'atom',
   'pendulum': 'pendulum',
 }
 
