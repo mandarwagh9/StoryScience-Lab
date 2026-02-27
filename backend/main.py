@@ -18,7 +18,9 @@ class QuestionRequest(BaseModel):
     question: str
     category: str | None = None
 
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "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")
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+if not OPENROUTER_API_KEY:
+    print("WARNING: OPENROUTER_API_KEY not set. Set it via environment variable.")
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 SYSTEM_PROMPT_TEXT = """You are StoryScience Lab, an educational platform that explains STEM concepts through engaging storytelling.
