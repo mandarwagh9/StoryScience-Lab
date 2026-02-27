@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -20,7 +23,7 @@ class QuestionRequest(BaseModel):
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 if not OPENROUTER_API_KEY:
-    print("WARNING: OPENROUTER_API_KEY not set. Set it via environment variable.")
+    print("WARNING: OPENROUTER_API_KEY not set. Set it in .env file variable.") or environment
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 SYSTEM_PROMPT_TEXT = """You are StoryScience Lab, an educational platform that explains STEM concepts through engaging storytelling.
