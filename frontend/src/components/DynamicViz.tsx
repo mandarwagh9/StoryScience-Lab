@@ -39,7 +39,7 @@ interface DynamicVizProps {
   config: {
     type: string
     title?: string
-    effectiveParams?: VizParams
+    params?: VizParams
   }
 }
 
@@ -49,9 +49,9 @@ export default function DynamicViz({ config }: DynamicVizProps) {
   const [showInfo, setShowInfo] = useState(false)
   const [particles, setParticles] = useState<Particle[]>([])
 
-  const effectiveParams = config.effectiveParams || {}
+  const params = config.params || {}
 
-  const getDefaultParams = (type: string, title: string) => {
+  const getDefaultParams = (type: string) => {
     switch (type) {
       case 'circuit':
         return {
@@ -141,9 +141,9 @@ export default function DynamicViz({ config }: DynamicVizProps) {
     }
   }
 
-  const effectiveParams = Object.keys(effectiveParams).length === 0 
-    ? getDefaultParams(config.type, config.title || '')
-    : effectiveParams
+  const effectiveParams = Object.keys(params).length === 0 
+    ? getDefaultParams(config.type)
+    : params
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500)
