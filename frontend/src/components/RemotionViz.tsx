@@ -23,8 +23,8 @@ const visualizationComponents: Record<VisualizationType, React.FC<any>> = {
   'pendulum': SimpleHarmonicMotion,
   'bar-chart': BarChart,
   'solar-system': SolarSystem,
-  'atom': BarChart,
-  'circuits': BarChart,
+  'atom': ProjectileMotion,
+  'circuits': WaveMotion,
 }
 
 export default function RemotionViz({ vizType, params = {}, autoPlay = true }: RemotionVizProps) {

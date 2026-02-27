@@ -22,12 +22,14 @@ interface ResponseDisplayProps {
 const vizTypeMapping: Record<string, string> = {
   'particle': 'projectile-motion',
   'wave': 'wave-motion',
-  'circuit': 'circuits',
-  'molecule': 'atom',
-  'graph': 'bar-chart',
+  'circuit': 'wave-motion',
+  'molecule': 'projectile-motion',
+  'graph': 'wave-motion',
   'astronomy': 'solar-system',
   'bar': 'bar-chart',
   'process': 'bar-chart',
+  'atom': 'projectile-motion',
+  'pendulum': 'pendulum',
 }
 
 export default function ResponseDisplay({ parts }: ResponseDisplayProps) {
