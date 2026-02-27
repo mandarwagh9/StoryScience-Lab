@@ -1,10 +1,10 @@
 import CodeBlock from './CodeBlock'
-import DynamicViz from './DynamicViz'
+import RemotionViz from './RemotionViz'
 
 interface VizConfig {
   type: string
   title?: string
-  params: Record<string, any>
+  params?: Record<string, any>
 }
 
 interface ResponsePart {
@@ -17,6 +17,17 @@ interface ResponsePart {
 
 interface ResponseDisplayProps {
   parts: ResponsePart[]
+}
+
+const vizTypeMapping: Record<string, string> = {
+  'particle': 'projectile-motion',
+  'wave': 'wave-motion',
+  'circuit': 'circuits',
+  'molecule': 'atom',
+  'graph': 'bar-chart',
+  'astronomy': 'solar-system',
+  'bar': 'bar-chart',
+  'process': 'bar-chart',
 }
 
 export default function ResponseDisplay({ parts }: ResponseDisplayProps) {
@@ -67,14 +78,16 @@ export default function ResponseDisplay({ parts }: ResponseDisplayProps) {
           }
 
           if (part.type === 'visual' && part.vizConfig) {
+            const remotionVizType = vizTypeMapping[part.vizConfig.type] || 'bar-chart'
             return (
               <div 
                 key={index} 
                 className="animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <DynamicViz 
-                  config={part.vizConfig}
+                <RemotionViz 
+                  vizType={remotionVizType as any}
+                  params={part.vizConfig.params}
                 />
               </div>
             )
