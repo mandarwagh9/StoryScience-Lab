@@ -1,4 +1,4 @@
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion'
+import { useState, useEffect, useRef } from 'react'
 
 interface Body {
   name: string
@@ -9,39 +9,47 @@ interface Body {
   color: string
 }
 
-interface AstronomyParams {
+interface SolarSystemProps {
   bodies?: Body[]
   showOrbits?: boolean
   title?: string
 }
 
-export const SolarSystem: React.FC<AstronomyParams> = (params) => {
-  const frame = useCurrentFrame()
-  const { fps } = useVideoConfig()
-  
-  const bodies = params.bodies || []
-  const showOrbits = params.showOrbits || false
-  const title = params.title || 'Astronomy'
+export default function SolarSystem({ bodies = [], showOrbits = false, title = 'Astronomy' }: SolarSystemProps) {
+  const [frame, setFrame] = useState(0)
+  const animationRef = useRef<number>()
+
+  useEffect(() => {
+    let lastTime = performance.now()
+    
+    const animate = (currentTime: number) => {
+      const delta = (currentTime - lastTime) / 1000
+      lastTime = currentTime
+      setFrame(f => f + delta * 60)
+      animationRef.current = requestAnimationFrame(animate)
+    }
+    animationRef.current = requestAnimationFrame(animate)
+    
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current)
+    }
+  }, [])
 
   if (bodies.length === 0) {
     return (
-      <AbsoluteFill style={{ backgroundColor: '#0A0A0A' }}>
-        <svg width="100%" height="100%" viewBox="0 0 800 500">
-          <text x="400" y="250" fill="#666" fontSize="18" textAnchor="middle">
-            No celestial bodies
-          </text>
-        </svg>
-      </AbsoluteFill>
+      <div className="w-full h-64 flex items-center justify-center bg-bg-secondary rounded-lg">
+        <p className="text-text-secondary">No celestial bodies</p>
+      </div>
     )
   }
 
   const centerX = 400
   const centerY = 250
-  const time = frame / fps
+  const time = frame / 60
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#0A0A0A' }}>
-      <svg width="100%" height="100%" viewBox="0 0 800 500">
+    <div className="w-full h-64 bg-bg-secondary rounded-lg overflow-hidden">
+      <svg viewBox="0 0 800 500" className="w-full h-full">
         <text x="50" y="40" fill="#F5F5F5" fontSize="20" fontFamily="system-ui">
           {title}
         </text>
@@ -82,6 +90,6 @@ export const SolarSystem: React.FC<AstronomyParams> = (params) => {
           )
         })}
       </svg>
-    </AbsoluteFill>
+    </div>
   )
 }

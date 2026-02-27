@@ -1,5 +1,9 @@
 import CodeBlock from './CodeBlock'
-import RemotionViz from './RemotionViz'
+import WaveMotion from './visualizations/WaveMotion'
+import SolarSystem from './visualizations/SolarSystem'
+import BarChart from './visualizations/BarChart'
+import ProcessFlow from './visualizations/ProcessFlow'
+import ParticleMotion from './visualizations/ProjectileMotion'
 
 interface VizConfig {
   type: string
@@ -19,17 +23,43 @@ interface ResponseDisplayProps {
   parts: ResponsePart[]
 }
 
-const vizTypeMapping: Record<string, string> = {
-  'particle': 'projectile-motion',
-  'wave': 'wave-motion',
-  'circuit': 'process',
-  'molecule': 'atom',
-  'graph': 'wave-motion',
-  'astronomy': 'solar-system',
-  'bar': 'bar-chart',
-  'process': 'process',
-  'atom': 'atom',
-  'pendulum': 'pendulum',
+function renderVisualization(vizConfig: VizConfig) {
+  const { type, title, params = {} } = vizConfig
+  
+  switch (type) {
+    case 'wave':
+      return <WaveMotion {...params} title={title} />
+    
+    case 'astronomy':
+    case 'solar-system':
+      return <SolarSystem {...params} title={title} />
+    
+    case 'bar':
+    case 'bar-chart':
+      return <BarChart {...params} title={title} />
+    
+    case 'process':
+      return <ProcessFlow {...params} title={title} />
+    
+    case 'particle':
+    case 'projectile-motion':
+      return <ParticleMotion {...params} title={title} />
+    
+    case 'molecule':
+    case 'atom':
+      return <ParticleMotion {...params} title={title} />
+    
+    case 'circuit':
+    case 'graph':
+      return <ProcessFlow steps={[
+        { label: 'Input', pos: [150, 200], color: '#C6FF00' },
+        { label: 'Process', pos: [400, 200], color: '#FF6B6B' },
+        { label: 'Output', pos: [650, 200], color: '#4ECDC4' }
+      ]} title={title} />
+    
+    default:
+      return <BarChart data={[]} title={title} />
+  }
 }
 
 export default function ResponseDisplay({ parts }: ResponseDisplayProps) {
@@ -80,18 +110,13 @@ export default function ResponseDisplay({ parts }: ResponseDisplayProps) {
           }
 
           if (part.type === 'visual' && part.vizConfig) {
-            const remotionVizType = vizTypeMapping[part.vizConfig.type] || 'bar-chart'
             return (
               <div 
                 key={index} 
-                className="animate-fade-in"
+                className="animate-fade-in my-6"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <RemotionViz 
-                  vizType={remotionVizType as any}
-                  params={part.vizConfig.params || {}}
-                  title={part.vizConfig.title}
-                />
+                {renderVisualization(part.vizConfig)}
               </div>
             )
           }

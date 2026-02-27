@@ -1,4 +1,4 @@
-import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion'
+import { useState, useEffect, useRef } from 'react'
 
 interface DataBar {
   label: string
@@ -12,21 +12,42 @@ interface BarChartProps {
   title?: string
 }
 
-export const BarChart: React.FC<BarChartProps> = (props) => {
-  const frame = useCurrentFrame()
-  const data = props.data || []
-  const animate = props.animate !== false
-  const title = props.title || 'Data'
-  
+export default function BarChart({ data = [], animate = true, title = 'Data' }: BarChartProps) {
+  const [animatedData, setAnimatedData] = useState<number[]>([])
+  const animationRef = useRef<number>()
+
+  useEffect(() => {
+    if (!animate || data.length === 0) {
+      setAnimatedData(data.map(() => 1))
+      return
+    }
+    
+    let startTime: number | null = null
+    const duration = 1000
+    
+    const anim = (timestamp: number) => {
+      if (!startTime) startTime = timestamp
+      const elapsed = timestamp - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      setAnimatedData(data.map(() => progress))
+      
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(anim)
+      }
+    }
+    animationRef.current = requestAnimationFrame(anim)
+    
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current)
+    }
+  }, [data, animate])
+
   if (data.length === 0) {
     return (
-      <AbsoluteFill style={{ backgroundColor: '#0A0A0A' }}>
-        <svg width="100%" height="100%" viewBox="0 0 800 500">
-          <text x="400" y="250" fill="#666" fontSize="18" textAnchor="middle">
-            No data available
-          </text>
-        </svg>
-      </AbsoluteFill>
+      <div className="w-full h-64 flex items-center justify-center bg-bg-secondary rounded-lg">
+        <p className="text-text-secondary">No data available</p>
+      </div>
     )
   }
 
@@ -40,8 +61,8 @@ export const BarChart: React.FC<BarChartProps> = (props) => {
   const barGap = (chartWidth / data.length) * 0.4
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#0A0A0A' }}>
-      <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}>
+    <div className="w-full h-64 bg-bg-secondary rounded-lg overflow-hidden">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full">
         <text x={padding.left} y="40" fill="#F5F5F5" fontSize="20" fontFamily="system-ui">
           {title}
         </text>
@@ -64,19 +85,16 @@ export const BarChart: React.FC<BarChartProps> = (props) => {
         {data.map((d, i) => {
           const barHeight = maxValue > 0 ? (d.value / maxValue) * chartHeight : 0
           const x = padding.left + i * (barWidth + barGap) + barGap / 2
-          const y = height - padding.bottom - barHeight
+          const y = height - padding.bottom - (barHeight * (animatedData[i] || 1))
+          const currentHeight = barHeight * (animatedData[i] || 1)
           
-          const animatedHeight = animate 
-            ? interpolate(frame, [0, 30 + i * 5], [0, barHeight], { extrapolateRight: 'clamp' })
-            : barHeight
-
           return (
             <g key={i}>
               <rect
                 x={x}
                 y={y}
                 width={barWidth}
-                height={animatedHeight}
+                height={currentHeight}
                 fill={d.color || '#C6FF00'}
                 rx="4"
               />
@@ -89,7 +107,7 @@ export const BarChart: React.FC<BarChartProps> = (props) => {
               >
                 {d.label}
               </text>
-              {animatedHeight > 20 && (
+              {currentHeight > 20 && (
                 <text
                   x={x + barWidth / 2}
                   y={y - 10}
@@ -104,6 +122,6 @@ export const BarChart: React.FC<BarChartProps> = (props) => {
           )
         })}
       </svg>
-    </AbsoluteFill>
+    </div>
   )
 }

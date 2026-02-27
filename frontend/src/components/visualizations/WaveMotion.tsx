@@ -1,42 +1,54 @@
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion'
+import { useState, useEffect, useRef } from 'react'
 
-interface WaveParams {
-  waves?: {
-    amplitude: number
-    frequency: number
-    wavelength: number
-    phase: number
-    color: string
-  }[]
+interface Wave {
+  amplitude: number
+  frequency: number
+  wavelength: number
+  phase: number
+  color: string
+}
+
+interface WaveMotionProps {
+  waves?: Wave[]
   showGrid?: boolean
   fill?: boolean
   title?: string
 }
 
-export const WaveMotion: React.FC<WaveParams> = (params) => {
-  const frame = useCurrentFrame()
-  const { fps } = useVideoConfig()
-  
-  const waves = params.waves || []
-  const showGrid = params.showGrid || false
-  const fill = params.fill || false
-  const title = params.title || 'Wave'
+export default function WaveMotion({ waves = [], showGrid = false, fill = false, title = 'Wave' }: WaveMotionProps) {
+  const [frame, setFrame] = useState(0)
+  const animationRef = useRef<number>()
+
+  useEffect(() => {
+    let lastTime = performance.now()
+    
+    const animate = (currentTime: number) => {
+      const delta = (currentTime - lastTime) / 1000
+      lastTime = currentTime
+      setFrame(f => f + delta * 60)
+      animationRef.current = requestAnimationFrame(animate)
+    }
+    animationRef.current = requestAnimationFrame(animate)
+    
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current)
+    }
+  }, [])
 
   if (waves.length === 0) {
     return (
-      <AbsoluteFill style={{ backgroundColor: '#0A0A0A' }}>
-        <svg width="100%" height="100%" viewBox="0 0 800 400">
-          <text x="400" y="200" fill="#666" fontSize="18" textAnchor="middle">
-            No wave data
-          </text>
-        </svg>
-      </AbsoluteFill>
+      <div className="w-full h-64 flex items-center justify-center bg-bg-secondary rounded-lg">
+        <p className="text-text-secondary">No wave data</p>
+      </div>
     )
   }
 
+  const width = 800
+  const height = 400
+
   return (
-    <AbsoluteFill style={{ backgroundColor: '#0A0A0A' }}>
-      <svg width="100%" height="100%" viewBox="0 0 800 400">
+    <div className="w-full h-64 bg-bg-secondary rounded-lg overflow-hidden">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full">
         <text x="50" y="40" fill="#F5F5F5" fontSize="20" fontFamily="system-ui">
           {title}
         </text>
@@ -49,27 +61,25 @@ export const WaveMotion: React.FC<WaveParams> = (params) => {
         )}
 
         {waves.map((wave, wi) => {
-          const points: { x: number; y: number }[] = []
+          const points: string[] = []
           
           for (let x = 50; x <= 750; x += 5) {
             const phase = (2 * Math.PI * (x - 50)) / wave.wavelength
-            const y = wave.amplitude * Math.sin(phase - (frame / fps) * wave.frequency * 2 * Math.PI + wave.phase)
-            points.push({ x, y: 200 + y })
+            const y = wave.amplitude * Math.sin(phase - (frame / 60) * wave.frequency * 2 * Math.PI + wave.phase)
+            points.push(`${x},${200 + y}`)
           }
-
-          const pointsPath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
 
           return (
             <g key={wi}>
               {fill && (
                 <path 
-                  d={`50,200 ${pointsPath} 750,200`} 
+                  d={`M50,200 L${points.join(' L')} L750,200 Z`} 
                   fill={wave.color} 
                   opacity="0.15" 
                 />
               )}
-              <path
-                d={pointsPath}
+              <polyline
+                points={points.join(' ')}
                 fill="none"
                 stroke={wave.color}
                 strokeWidth="3"
@@ -78,6 +88,6 @@ export const WaveMotion: React.FC<WaveParams> = (params) => {
           )
         })}
       </svg>
-    </AbsoluteFill>
+    </div>
   )
 }
