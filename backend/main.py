@@ -33,14 +33,13 @@ Your task is to provide a clear, educational explanation of the science concept 
 - Use simple, accessible language
 - Break down complex ideas into digestible parts
 - Include real-world examples where helpful
-- Keep explanations concise but informative (2-4 paragraphs max)
+- Keep explanations concise and informative (2-4 paragraphs max)
 
 Provide ONLY the text explanation, nothing else.
 Question: """
 
 VISUALIZATION_TYPES = ["particle", "wave", "circuit", "molecule", "graph", "astronomy", "bar", "process"]
 
-# Visualization configs for each type
 VIZ_CONFIGS = {
     "circuit": {
         "type": "circuit",
@@ -121,27 +120,37 @@ VIZ_CONFIGS = {
         "type": "process",
         "params": {
             "steps": [
-                {"label": "Start", "pos": [150, 200], "color": "#C6FF00"},
+                {"label": "Input", "pos": [150, 200], "color": "#C6FF00"},
                 {"label": "Process", "pos": [400, 200], "color": "#FF6B6B"},
-                {"label": "End", "pos": [650, 200], "color": "#4ECDC4"}
+                {"label": "Output", "pos": [650, 200], "color": "#4ECDC4"}
             ],
             "flow": True,
             "animateFlow": True
         }
+    },
+    "bar": {
+        "type": "bar",
+        "params": {
+            "data": [
+                {"label": "A", "value": 75, "color": "#C6FF00"},
+                {"label": "B", "value": 45, "color": "#FF6B6B"},
+                {"label": "C", "value": 90, "color": "#4ECDC4"}
+            ],
+            "animate": True
+        }
     }
 }
 
-# Keyword mappings for intelligent fallback
 KEYWORD_VIZ_MAP = [
-    # (keywords, viz_type) - order matters! more specific first
-    # Circuit/Electricity - check BEFORE wave (electric explanations mention electrons/current)
-    (["electric", "electrical", "circuit", "current", "voltage", "electron", "battery", "wire", "resistor", "bulb", "led", "power", "conduction"], "circuit"),
-    (["wave", "sound", "light", "frequency", "wavelength", "amplitude", "vibration", "oscill", "electromagnetic", "ripple"], "wave"),
-    (["planet", "orbit", "solar", "star", "moon", "mars", "earth", "jupiter", "saturn", "galaxy", "universe", "astronomy"], "astronomy"),
-    (["molecule", "atom", "chemical", "bond", "hydrogen", "oxygen", "carbon", "water", "co2", "structure", "element", "compound"], "molecule"),
-    (["particle", "gas", "brownian", "collision", "velocity", "kinetic"], "particle"),
+    (["force", "gravity", "newton", "motion", "acceleration", "mass", "friction"], "particle"),
+    (["photosynthesis", "respiration", "dna", "rna", "cell", "gene", "evolution", "ecosystem", "organism", "living"], "process"),
+    (["reaction", "acid", "base", "ph", "chemistry", "chemical"], "molecule"),
+    (["electric", "electrical", "circuit", "current", "voltage", "battery", "wire", "resistor", "bulb", "led", "conduction"], "circuit"),
+    (["wave", "sound", "light", "frequency", "wavelength", "amplitude", "vibration", "electromagnetic", "ripple"], "wave"),
+    (["planet", "orbit", "solar", "star", "moon", "mars", "earth", "jupiter", "saturn", "galaxy", "universe", "astronomy", "asteroid"], "astronomy"),
+    (["particle", "gas", "brownian", "collision", "kinetic"], "particle"),
     (["graph", "function", "math", "curve", "sine", "cosine", "equation", "plot", "trigonometry"], "graph"),
-    (["process", "step", "procedure", "method", "stage", "phase", "workflow"], "process"),
+    (["how does", "how do", "process", "step", "procedure", "method", "stage", "phase", "workflow", "work", "engine", "machine"], "process"),
 ]
 
 @app.get("/")
@@ -184,27 +193,9 @@ async def explain_concept(request: QuestionRequest):
                 data = response.json()
                 return data["choices"][0]["message"]["content"]
         
-        # Step 1: Get text explanation
         text_content = await call_llm(SYSTEM_PROMPT_TEXT, request.question, max_tokens=800)
         
-        # Step 2: Try to get visualization from LLM
         viz_config = None
-        
-        user_msg = f"""Create a visualization config for this science concept.
-
-Question: {request.question}
-
-Output ONLY valid JSON like:
-{{"type": "circuit", "title": "Circuit", "params": {{"components": [{{"type": "battery", "pos": [100, 200], "voltage": 9}}], "showCurrent": true}}}}
-{{"type": "wave", "title": "Wave", "params": {{"waves": [{{"amplitude": 60, "frequency": 1.5, "wavelength": 120, "phase": 0, "color": "#C6FF00"}}], "showGrid": true}}}}
-
-Types: circuit, wave, particle, molecule, graph, astronomy, bar, process. Canvas 800x500. Output JSON only:"""
-
-        # Skip LLM for now - use keyword-based fallback which is more reliable
-        viz_config = None
-        
-        # Fallback: intelligent keyword-based visualization
-        # Check question FIRST, then text
         question_lower = request.question.lower()
         
         for keywords, viz_type in KEYWORD_VIZ_MAP:
@@ -213,43 +204,10 @@ Types: circuit, wave, particle, molecule, graph, astronomy, bar, process. Canvas
                 viz_config["title"] = request.question[:40]
                 break
         
-        # If no match in question, check explanation text
         if not viz_config:
-            text_lower = text_content.lower()
-            for keywords, viz_type in KEYWORD_VIZ_MAP:
-                if any(w in text_lower for w in keywords):
-                    viz_config = VIZ_CONFIGS[viz_type].copy()
-                    viz_config["title"] = request.question[:40]
-                    break
+            viz_config = VIZ_CONFIGS["bar"].copy()
+            viz_config["title"] = request.question[:40]
         
-        # Default: bar chart
-            
-            # Default: bar chart
-            if not viz_config:
-                numbers = re.findall(r'\b(\d+)\b', text_content)
-                data = []
-                colors = ["#C6FF00", "#FF6B6B", "#4ECDC4", "#FFE66D"]
-                labels = ["A", "B", "C", "D", "E", "F"]
-                for i, num in enumerate(numbers[:6]):
-                    data.append({"label": labels[i], "value": min(int(num), 100), "color": colors[i % len(colors)]})
-                
-                if not data:
-                    data = [
-                        {"label": "A", "value": 75, "color": "#C6FF00"},
-                        {"label": "B", "value": 45, "color": "#FF6B6B"},
-                        {"label": "C", "value": 90, "color": "#4ECDC4"}
-                    ]
-                
-                viz_config = {
-                    "type": "bar",
-                    "title": request.question[:40],
-                    "params": {
-                        "data": data,
-                        "animate": True
-                    }
-                }
-        
-        # Build response
         parts = [
             {"type": "text", "content": text_content.strip()},
             {"type": "visual", "vizConfig": viz_config}
