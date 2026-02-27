@@ -1,22 +1,34 @@
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion'
 
-interface SolarSystemProps {
-  showOrbits?: boolean
+interface Body {
+  name: string
+  type: string
+  orbit: number
+  speed: number
+  radius: number
+  color: string
 }
 
-export const SolarSystem: React.FC<SolarSystemProps> = ({ showOrbits = true }) => {
+interface AstronomyParams {
+  bodies?: Body[]
+  showOrbits?: boolean
+  title?: string
+}
+
+export const SolarSystem: React.FC<AstronomyParams> = (params) => {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
-
-  const planets = [
-    { name: 'Mercury', r: 30, size: 4, speed: 4.7, color: '#A0A0A0' },
-    { name: 'Venus', r: 50, size: 7, speed: 3.5, color: '#F5D76E' },
-    { name: 'Earth', r: 75, size: 7.5, speed: 2.9, color: '#4ADE80' },
-    { name: 'Mars', r: 100, size: 5, speed: 2.4, color: '#FF6B6B' },
-    { name: 'Jupiter', r: 150, size: 15, speed: 1.3, color: '#F5D76E' },
-    { name: 'Saturn', r: 200, size: 12, speed: 0.9, color: '#F4D03F' },
+  
+  const bodies = params.bodies || [
+    { name: 'Sun', type: 'star', orbit: 0, speed: 0, radius: 50, color: '#FFD700' },
+    { name: 'Earth', type: 'planet', orbit: 150, speed: 1, radius: 15, color: '#4ECDC4' },
+    { name: 'Mars', type: 'planet', orbit: 220, speed: 0.7, radius: 12, color: '#FF6B6B' }
   ]
+  const showOrbits = params.showOrbits !== false
+  const title = params.title || 'Solar System'
 
+  const centerX = 400
+  const centerY = 250
   const time = frame / fps
 
   return (
@@ -34,20 +46,15 @@ export const SolarSystem: React.FC<SolarSystemProps> = ({ showOrbits = true }) =
         </defs>
 
         <text x="50" y="40" fill="#F5F5F5" fontSize="20" fontFamily="system-ui">
-          Solar System - Orbital Motion
+          {title}
         </text>
 
-        <circle cx="400" cy="250" r="60" fill="url(#glow)" />
-        <circle cx="400" cy="250" r="30" fill="url(#sunGradient)" />
-
-        <text x="435" y="255" fill="#B8860B" fontSize="12" fontWeight="bold">Sun</text>
-
-        {showOrbits && planets.map((p, i) => (
+        {showOrbits && bodies.filter(b => b.type === 'planet').map((body, i) => (
           <circle
             key={`orbit-${i}`}
-            cx="400"
-            cy="250"
-            r={p.r}
+            cx={centerX}
+            cy={centerY}
+            r={body.orbit}
             fill="none"
             stroke="#333"
             strokeWidth="1"
@@ -55,38 +62,31 @@ export const SolarSystem: React.FC<SolarSystemProps> = ({ showOrbits = true }) =
           />
         ))}
 
-        {planets.map((p, i) => {
-          const angle = (time * p.speed * Math.PI) / 30
-          const x = 400 + p.r * Math.cos(angle)
-          const y = 250 + p.r * Math.sin(angle)
-
+        {bodies.map((body, i) => {
+          if (body.type === 'star') {
+            return (
+              <g key={i}>
+                <circle cx={centerX} cy={centerY} r={body.radius + 20} fill="url(#glow)" />
+                <circle cx={centerX} cy={centerY} r={body.radius} fill="url(#sunGradient)" />
+                <text x={centerX + body.radius + 10} y={centerY + 5} fill="#B8860B" fontSize="12" fontWeight="bold">{body.name}</text>
+              </g>
+            )
+          }
+          
+          const angle = time * body.speed
+          const x = centerX + body.orbit * Math.cos(angle)
+          const y = centerY + body.orbit * Math.sin(angle)
+          
           return (
             <g key={i}>
-              <circle
-                cx={x}
-                cy={y}
-                r={p.size}
-                fill={p.color}
-              />
-              <text
-                x={x + p.size + 5}
-                y={y + 4}
-                fill="#A0A0A0"
-                fontSize="10"
-              >
-                {p.name}
-              </text>
+              <circle cx={x} cy={y} r={body.radius} fill={body.color} />
+              <text x={x + body.radius + 5} y={y + 4} fill="#A0A0A0" fontSize="10">{body.name}</text>
             </g>
           )
         })}
 
-        <rect x="50" y="420" width="700" height="1" fill="#222" />
-
-        <text x="50" y="450" fill="#A0A0A0" fontSize="12">
-          Orbital speeds (inner to outer): Mercury 4.7 → Saturn 0.9 km/s
-        </text>
         <text x="50" y="470" fill="#666" fontSize="11">
-          Planets closer to the Sun orbit faster due to stronger gravitational pull
+          Animated with Remotion
         </text>
       </svg>
     </AbsoluteFill>

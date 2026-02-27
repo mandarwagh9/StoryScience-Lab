@@ -14,6 +14,7 @@ import {
 interface RemotionVizProps {
   vizType: VisualizationType
   params?: Record<string, any>
+  title?: string
   autoPlay?: boolean
 }
 
@@ -27,7 +28,7 @@ const visualizationComponents: Record<VisualizationType, React.FC<any>> = {
   'circuits': WaveMotion,
 }
 
-export default function RemotionViz({ vizType, params = {}, autoPlay = true }: RemotionVizProps) {
+export default function RemotionViz({ vizType, params = {}, title, autoPlay = true }: RemotionVizProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [showCode, setShowCode] = useState(false)
 
@@ -82,17 +83,16 @@ export default function RemotionViz({ vizType, params = {}, autoPlay = true }: R
             compositionHeight={config.height}
             autoPlay={autoPlay}
             loop
-            inputProps={params}
+            inputProps={{ ...params, title }}
           />
         </div>
       </div>
 
       {showCode && (
         <div className="p-4 border-t border-bg-tertiary bg-bg-primary">
-          <p className="text-sm text-text-secondary">
-            This animation demonstrates {vizType.replace('-', ' ')} concept. 
-            The visualization runs in real-time using Remotion.
-          </p>
+          <pre className="text-xs text-text-secondary font-mono overflow-x-auto">
+            {JSON.stringify({ type: vizType, params, title }, null, 2)}
+          </pre>
         </div>
       )}
     </div>
