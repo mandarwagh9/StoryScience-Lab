@@ -17,25 +17,26 @@ export const WaveMotion: React.FC<WaveParams> = (params) => {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
   
-  const waves = params.waves || [
-    { amplitude: 60, frequency: 1.5, wavelength: 120, phase: 0, color: '#C6FF00' },
-    { amplitude: 40, frequency: 2, wavelength: 80, phase: 1.57, color: '#FF6B6B' }
-  ]
-  const showGrid = params.showGrid !== false
-  const fill = params.fill !== false
-  const title = params.title || 'Wave Motion'
+  const waves = params.waves || []
+  const showGrid = params.showGrid || false
+  const fill = params.fill || false
+  const title = params.title || 'Wave'
+
+  if (waves.length === 0) {
+    return (
+      <AbsoluteFill style={{ backgroundColor: '#0A0A0A' }}>
+        <svg width="100%" height="100%" viewBox="0 0 800 400">
+          <text x="400" y="200" fill="#666" fontSize="18" textAnchor="middle">
+            No wave data
+          </text>
+        </svg>
+      </AbsoluteFill>
+    )
+  }
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#0A0A0A' }}>
       <svg width="100%" height="100%" viewBox="0 0 800 400">
-        <defs>
-          <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#C6FF00" stopOpacity="0.2" />
-            <stop offset="50%" stopColor="#C6FF00" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#C6FF00" stopOpacity="0.2" />
-          </linearGradient>
-        </defs>
-
         <text x="50" y="40" fill="#F5F5F5" fontSize="20" fontFamily="system-ui">
           {title}
         </text>
@@ -76,10 +77,6 @@ export const WaveMotion: React.FC<WaveParams> = (params) => {
             </g>
           )
         })}
-
-        <text x="50" y="380" fill="#A0A0A0" fontSize="12" fontFamily="system-ui">
-          {waves.map(w => `${w.color} λ=${w.wavelength} f=${w.frequency}`).join(' | ')}
-        </text>
       </svg>
     </AbsoluteFill>
   )
