@@ -1,91 +1,126 @@
 # StoryScience Lab
 
-An edutainment web app that explains complex STEM concepts through interleaved storytelling using Gemini's multimodal output (text + AI-generated images).
+An edutainment web app for the **Gemini Live Agent Challenge** that explains complex STEM concepts through interactive storytelling with text and animated SVG visualizations.
 
 ## Project Overview
 
-**Category:** Creative Storyteller  
-**Tech Stack:** React + TypeScript, FastAPI, Gemini 2.0 Flash, Google Cloud Run  
-**Target Audience:** Lifelong learners
+- **Category:** Creative Storyteller  
+- **Tech Stack:** React + TypeScript + Vite + Tailwind CSS, FastAPI, OpenRouter API (Gemini), Google Cloud Run  
+- **Target Audience:** Lifelong learners
 
 ## Features
 
 - Ask any STEM question and receive interactive explanations
-- AI-generated visualizations accompany text explanations
-- Clean, modern dark interface with electric lime accent
+- Two-step LLM approach: text explanation → visualization config
+- 8 animated visualization types: particle, wave, circuit, molecule, graph, astronomy, bar, process
+- Clean, modern dark interface with electric lime accent (#C6FF00)
 - Category filtering for Physics, Chemistry, Biology, Math, Computer Science, Astronomy, Environment
 
 ## Prerequisites
 
 - Node.js 18+
 - Python 3.11+
-- Google Cloud Project with Vertex AI API enabled
-- Google Cloud SDK installed
+- OpenRouter API key (get free key at https://openrouter.ai)
 
 ## Local Development
 
-### Frontend
+### 1. Set API Key
+
+```bash
+# Set OpenRouter API key
+export OPENROUTER_API_KEY=your-api-key-here
+```
+
+### 2. Backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+# Runs on http://localhost:8000
+```
+
+### 3. Frontend
 
 ```bash
 cd frontend
 npm install
 npm run dev
+# Runs on http://localhost:5173
 ```
 
-### Backend
+## API Endpoints
 
-```bash
-cd backend
-pip install -r requirements.txt
-export GOOGLE_CLOUD_PROJECT=your-project-id
-export GOOGLE_CLOUD_LOCATION=us-central1
-python main.py
+- `GET /` - Health check
+- `POST /api/explain` - Get explanation with visualization
+
+Request:
+```json
+{"question": "How does electricity flow in a circuit?"}
 ```
+
+Response:
+```json
+{
+  "response": [
+    {"type": "text", "content": "Electricity flows..."},
+    {"type": "visual", "vizConfig": {"type": "circuit", "title": "Circuit", "params": {...}}}
+  ]
+}
+```
+
+## Visualization Types
+
+| Type | Description |
+|------|-------------|
+| `particle` | Particle simulation with bouncing particles |
+| `wave` | Animated wave motion (sine waves) |
+| `circuit` | Electric circuit with battery, wires, resistors, LED |
+| `molecule` | Molecular structure with rotation |
+| `graph` | Mathematical function graphs |
+| `astronomy` | Planetary orbits |
+| `bar` | Animated bar charts |
+| `process` | Process flow diagrams |
 
 ## Deployment to Google Cloud Run
 
-### Option 1: Deploy Backend Only
+### Deploy Backend
 
 ```bash
 cd backend
 gcloud run deploy storyscience-backend \
   --source . \
   --region us-central1 \
-  --allow-unauthenticated
+  --allow-unauthenticated \
+  --set-env-vars OPENROUTER_API_KEY=your-api-key
 ```
 
-### Option 2: Deploy Full Stack
+### Deploy Frontend
 
 ```bash
-# Build and push frontend
 cd frontend
 gcloud builds submit --tag gcr.io/$PROJECT_ID/storyscience-frontend
 
-# Deploy frontend
 gcloud run deploy storyscience-frontend \
   --image gcr.io/$PROJECT_ID/storyscience-frontend \
   --region us-central1 \
   --allow-unauthenticated
-
-# Note: Update nginx.conf proxy_pass to your backend URL
 ```
-
-## Environment Variables
-
-- `GOOGLE_CLOUD_PROJECT`: Your GCP project ID
-- `GOOGLE_CLOUD_LOCATION`: GCP region (default: us-central1)
 
 ## Architecture
 
 ```
-User Input → React Frontend → FastAPI Backend → Gemini API
+User Input → React Frontend → FastAPI Backend → OpenRouter (Gemini)
                               ↓
-                      Vertex AI (Gemini + Imagen)
+                        SVG Animations
 ```
 
 ## Demo
 
-Watch the demo video to see StoryScience Lab in action.
+Try questions like:
+- "How does electricity flow in a circuit?"
+- "What is a sound wave?"
+- "Explain how the solar system works"
 
 ## License
 
